@@ -1,0 +1,10 @@
+BrightstarDB Graph API
+----------------------
+
+BrightstarDB is an RDF and thus inherently a graph data store. It currently provides LINQ and SPARQL as ways to navigate and query the data. This API provides a way to traverse the graph using a set of operators that are similar to traditional graph navigation. 
+
+An example is:
+
+From(X).Traverse("worksfor").Filter("name = BrightstarDB").Select("Location");
+
+Note: This API is under development and experimental at this time.
