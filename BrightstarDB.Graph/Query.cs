@@ -19,18 +19,21 @@ namespace BrightstarDB.Graph
         {
             _startNodes = new List<Uri>();
             _graph = graph;
+            _terms = new List<QueryTerm>();
         }
 
         public Query(Graph graph, Uri startNode)
         {
             _startNodes = new List<Uri> {startNode};
             _graph = graph;
+            _terms = new List<QueryTerm>();
         }
 
         public Query(IEnumerable<Uri> startNodes)
         {
             _startNodes = new List<Uri>();
             _startNodes.AddRange(startNodes);
+            _terms = new List<QueryTerm>();
         }
 
         public Query Traverse(string property, TraversalOptions traversaloptions = null)
@@ -71,22 +74,47 @@ namespace BrightstarDB.Graph
                     var output = new List<Uri>();
                     foreach (var uri in inputSet)
                     {
-                        var query = "select ?id where { <" + uri + "> <" + traverseQueryTerm.Property + "> ?id }";
+                        string query;
+                        if (traverseQueryTerm.IsInverse)
+                        {
+                            query = "select ?id where { ?id  <" + traverseQueryTerm.Property + "> <" + uri + "> }";
+                        }
+                        else
+                        {
+                            query = "select ?id where { <" + uri + "> <" + traverseQueryTerm.Property + "> ?id }";
+                        }
+
                         var sparqlResult = _graph.ExecuteQuery(query);
                         foreach (var row in sparqlResult.SparqlResultRows())
                         {
                             output.Add(new Uri(row.GetColumnValue("id").ToString()));
                         }
+                        _context.AddSet(output);
                     }
                 } else if (queryTerm is FilterQueryTerm)
                 {
-                    
+                    var filterQueryTerm = queryTerm as FilterQueryTerm;
+                    var inputSet = _context.Latest;
+                    var output = new List<Uri>();
+                    if (filterQueryTerm.Operator == Operator.Eq)
+                    {
+                        var query = "select ?id where { ?id <" + filterQueryTerm.Property + "> \"" + filterQueryTerm.Operand + "\" }";
+                        var sparqlResult = _graph.ExecuteQuery(query);
+                        foreach (var row in sparqlResult.SparqlResultRows())
+                        {
+                            output.Add(new Uri(row.GetColumnValue("id").ToString()));
+                        }
+
+                        var intersectedOuput = output.Intersect<Uri>(_context.Latest);
+                        _context.AddSet(intersectedOuput.ToList());
+                    }
                 } else if (queryTerm is SelectQueryTerm)
                 {
                     
                 }
             }
 
+            result.ResourceSet = _context.Latest;
             return result;
         }
 

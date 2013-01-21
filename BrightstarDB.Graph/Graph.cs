@@ -20,6 +20,7 @@ namespace BrightstarDB.Graph
         public Graph(string connectionString, string storeName)
         {
             _client = BrightstarService.GetClient(connectionString);
+            _storeName = storeName;
         }
 
         public IBrightstarService Client { get { return _client; } }
