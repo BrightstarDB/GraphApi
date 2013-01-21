@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Context.cs" />
+    <Compile Include="DataBuilder\FilmReviewDataGenerator.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="Operator.cs" />
     <Compile Include="Query.cs" />
